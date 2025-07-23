@@ -4,9 +4,6 @@ import asyncio
 from datetime import datetime
 from telegram import Update, Bot
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-from telegram.ext import MessageHandler, filters
-from PIL import Image
-import io
 
 
 # === Tambahan Gemini ===
@@ -23,7 +20,6 @@ TELEGRAM_TOKEN = 'TOKEN DARI BOTFATHER'
 CHAT_ID = CHATIDDARIAPITELEGRAM
 CHECK_INTERVAL = 10  # detik
 DATA_FILE = "alert_data.json"
-
 
 # Inisialisasi data
 try:
@@ -200,41 +196,6 @@ async def analisa(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 continue
             await update.message.reply_text(f"⚠️ Gagal mendapatkan respon dari Gemini: {e}")
             return
-
-async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    try:
-        await update.message.reply_text("📷 Menerima gambar... sedang diproses oleh Gemini...")
-
-        # Download gambar
-        photo_file = await update.message.photo[-1].get_file()
-        image_bytes = await photo_file.download_as_bytearray()
-
-        # Kirim ke Gemini multimodal
-        model = client.models["gemini-pro-vision"]
-        response = model.generate_content([
-            {
-                "role": "user",
-                "parts": [
-                    {
-                        "inline_data": {
-                            "mime_type": "image/png",
-                            "data": image_bytes
-                        }
-                    },
-                    {
-                        "text": (
-                            "Tolong analisa gambar chart ini. Jelaskan tren harga, pola yang terbentuk, dan level penting "
-                            "(support/resistance). Jika terlihat sinyal entry (buy/sell), tolong sebutkan juga dengan singkat."
-                        )
-                    }
-                ]
-            }
-        ])
-
-        await update.message.reply_text(response.text)
-
-    except Exception as e:
-        await update.message.reply_text(f"❌ Gagal memproses gambar: {e}")
 
 
 # ===== Main Bot Init =====
